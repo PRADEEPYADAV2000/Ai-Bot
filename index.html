@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Information Lab</title>
+    <style>
+        /* Global Theme Variables */
+        :root {
+            --bg-dark: #121212;
+            --bg-light: #ffffff;
+            --text-dark: #ffffff;
+            --text-light: #333;
+            --box-dark: #1e1e1e;
+            --box-light: #f4f4f4;
+            --input-dark: #222;
+            --input-light: #fff;
+            --button-dark: #4CAF50;
+            --button-light: #008CBA;
+            --footer-dark: #1e1e1e;
+            --footer-light: #e0e0e0;
+            --shadow-dark: rgba(0, 0, 0, 0.7);
+            --shadow-light: rgba(0, 0, 0, 0.2);
+        }
+
+        /* Page Setup */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--bg-dark);
+            color: var(--text-dark);
+            font-family: Arial, sans-serif;
+            text-align: center;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        /* Light Mode Styles (Applied Globally) */
+        .light-mode {
+            background-color: var(--bg-light);
+            color: var(--text-light);
+        }
+
+        h2 {
+            font-size: 30px;
+            margin: 20px 0;
+        }
+
+        label {
+            font-size: 18px;
+        }
+
+        /* Inputs & Buttons */
+        select, input, button {
+            padding: 12px;
+            margin: 10px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+
+        /* Search Box Styling */
+        input {
+            width: 40vw;
+            max-width: 400px;
+            background: var(--input-dark);
+            color: var(--text-dark);
+            outline: none;
+            padding-left: 10px;
+            box-shadow: 0px 4px 8px var(--shadow-dark);
+        }
+
+        /* Light Mode Search Box */
+        .light-mode input {
+            background: var(--input-light);
+            color: var(--text-light);
+            box-shadow: 0px 4px 8px var(--shadow-light);
+        }
+
+        select {
+            background: var(--box-dark);
+            color: var(--text-dark);
+            cursor: pointer;
+        }
+
+        button {
+            background: var(--button-dark);
+            color: white;
+            cursor: pointer;
+        }
+
+        button:hover {
+            opacity: 0.8;
+        }
+
+        /* Theme Toggle Button */
+        .theme-toggle {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: var(--button-dark);
+            color: white;
+            padding: 6px 12px;
+            font-size: 14px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        /* Summary Box */
+        #result {
+            display: none;
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 10px;
+            background: var(--box-dark);
+            max-width: 80%;
+            text-align: left;
+            min-height: 50px;
+            max-height: 300px;
+            overflow-y: auto;
+            position: relative;
+            transition: all 0.3s ease;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Theme Change Applied to Everything */
+        .light-mode select {
+            background: var(--box-light);
+            color: var(--text-light);
+        }
+
+        .light-mode button {
+            background: var(--button-light);
+        }
+
+        .light-mode #result {
+            background: var(--box-light);
+            color: var(--text-light);
+        }
+
+        /* Container */
+        .container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+        }
+
+        /* Responsive Full-Width Footer */
+        footer {
+            font-size: 14px;
+            color: #888;
+            width: 100%;
+            text-align: center;
+            padding: 10px;
+            background: var(--footer-dark);
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            transition: all 0.3s ease;
+        }
+
+        /* Light Mode Footer */
+        .light-mode footer {
+            background: var(--footer-light);
+            color: var(--text-light);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 600px) {
+            input {
+                width: 80%;
+            }
+            #result {
+                max-width: 90%;
+            }
+            .theme-toggle {
+                font-size: 12px;
+                padding: 5px 10px;
+            }
+        }
+    </style>
+
+    <script>
+        function toggleTheme() {
+            document.body.classList.toggle("light-mode");
+
+            // Store theme preference in local storage
+            if (document.body.classList.contains("light-mode")) {
+                localStorage.setItem("theme", "light");
+            } else {
+                localStorage.setItem("theme", "dark");
+            }
+        }
+
+        // Apply saved theme on page load
+        window.onload = function() {
+            if (localStorage.getItem("theme") === "light") {
+                document.body.classList.add("light-mode");
+            }
+        };
+
+        async function searchWiki() {
+            const topic = document.getElementById("topic").value;
+            const language = document.getElementById("language").value;
+            const resultBox = document.getElementById("result");
+
+            if (!topic) {
+                alert("Please enter a topic!");
+                return;
+            }
+
+            try {
+                const response = await fetch("http://127.0.0.1:5000/search", {  
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ topic, language })
+                });
+
+                if (!response.ok) {
+                    throw new Error("Failed to fetch data");
+                }
+
+                const result = await response.json();
+                resultBox.innerText = result.summary || "No summary available.";
+                resultBox.style.display = "block";
+            } catch (error) {
+                console.error("Error fetching Wikipedia data:", error);
+                resultBox.innerText = "Error fetching Wikipedia data.";
+                resultBox.style.display = "block";
+            }
+        }
+    </script>
+</head>
+<body>
+
+    <button class="theme-toggle" onclick="toggleTheme()">🌙</button>
+
+    <div class="container">
+        <h2>Information Search</h2>
+
+        <div>
+            <label for="language">Select Language:</label>
+            <select id="language">
+                <option value="en">English</option>
+                <option value="hi">Hindi</option>
+            </select>
+        </div>
+
+        <div>
+            <input type="text" id="topic" placeholder="Enter a topic">
+            <button onclick="searchWiki()">Search</button>
+        </div>
+
+        <h3>Summary:</h3>
+        <p id="result"></p>
+    </div>
+
+    <footer>Designed by YP</footer>
+
+</body>
+</html>
