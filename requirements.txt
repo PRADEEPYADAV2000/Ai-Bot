@@ -1,3 +1,5 @@
 Flask
-Flask-Cors
-gunicorn
+flask-cors
+wikipedia-api
+deep-translator
+gunicorn  # Required for deployment on Render
